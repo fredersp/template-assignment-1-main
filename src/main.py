@@ -8,3 +8,16 @@ Suggested structure:
 - Prepare input data for a single simulation or multiple simulations.
 - Execute main function when the script is run directly.
 """
+
+from data_ops.data_loader import DataLoader
+
+
+test = DataLoader('data')
+df_test = test._load_data_file('question_1a', 'bus_params.json')
+
+Lambda = df_test[0]['energy_price_DKK_per_kWh']
+
+print(Lambda)
+
+
+
