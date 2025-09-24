@@ -5,7 +5,7 @@ import gurobipy as gp
 from gurobipy import GRB
 
 
-from src.data_ops import data_loader
+#from src.data_ops import data_loader
 
 
 
@@ -22,6 +22,7 @@ class InputData:
                  variables: list,
                  el_prices: list[float],
                  imp_tariff: float,
+                 upper_power_PV_rhs: list[float],
                  upper_power_rhs: list[float],
                  hourly_balance_rhs: list[float],
                  hourly_balance_sense: list[str]):
@@ -29,6 +30,7 @@ class InputData:
         self.variables = variables
         self.el_prices = el_prices
         self.imp_tariff = imp_tariff
+        self.upper_power_PV_rhs = upper_power_PV_rhs
         self.upper_power_rhs = upper_power_rhs
         self.hourly_balance_rhs = hourly_balance_rhs
         self.hourly_balance_sense = hourly_balance_sense
@@ -40,22 +42,28 @@ class OptModel():
 
     def __init__(self, input_data: InputData, name: str, hours: int = 24):
         self.data = input_data
+        self.name = name
         self.hours = range(hours)
         self.results = Expando()
-        self._build_model(self, name)
+        self._build_model()
 
     def _build_variables(self):
-        self.variables = {
-            (v, t): self.model.addVar(name=f"{v}_{t}") for v in self.data.variables for t in self.hours
-        }
+        self.variables = [
+            self.model.addVar(name=f"{v}_{t}") for v in self.data.variables for t in self.hours
+        ]
 
     def _build_constraints(self):
-        
-        # Upper power constraints
+
+        self.upper_power_PV = [ self.model.addLConstr(
+            self.variables(0,t), GRB.LESS_EQUAL, self.data.upper_power_PV_rhs[t]
+            ) for t in self.hours
+        ]
+
+        # Upper power constraints P_imp and P_exp
         self.upper_power = [ self.model.addLConstr(
             self.variables[v,t], GRB.LESS_EQUAL, self.data.upper_power_rhs[v]
              ) 
-            for v in self.data.VARIABLES for t in self.hours
+            for v in range(1, len(self.data.variables)-1) for t in self.hours
         ]
         # Hourly balance constraints
         self.hourly_balance = [ self.model.addLConstr(
@@ -76,8 +84,8 @@ class OptModel():
         GRB.minimize)
 
 
-    def _build_model(self, name):
-        self.model = gp.Model(name)
+    def _build_model(self):
+        self.model = gp.Model(self.name)
         self._build_variables()
         self._build_constraints()
         self._build_objective()
@@ -100,4 +108,14 @@ class OptModel():
             self._save_results()
         else:
             raise ValueError("No optimal solution found for {self.model.name}")
+        
+    def display_results(self):
+        print()
+        print("-------------------   RESULTS  -------------------")
+        print("Optimal objective value:")
+        print(self.results.obj_val)
+        print("Optimal variable values:")
+        print(self.results.var_vals)
+        print("Optimal dual values:")
+        print(self.results.dual_vals)
         
