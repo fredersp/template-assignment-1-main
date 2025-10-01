@@ -49,39 +49,42 @@ class OptModel():
 
     def _build_variables(self):
         self.variables = [
-            self.model.addVar(name=f"{v}_{t}") for v in self.data.variables for t in self.hours
-        ]
+        [self.model.addVar(name=f"{v}_{t}") for t in self.hours]
+        for v in self.data.variables
+    ]
 
     def _build_constraints(self):
 
         self.upper_power_PV = [ self.model.addLConstr(
-            self.variables(0,t), GRB.LESS_EQUAL, self.data.upper_power_PV_rhs[t]
-            ) for t in self.hours
+            self.variables[0][t], GRB.LESS_EQUAL, self.data.upper_power_PV_rhs[t]
+            )   
+            for t in self.hours
         ]
 
         # Upper power constraints P_imp and P_exp
         self.upper_power = [ self.model.addLConstr(
-            self.variables[v,t], GRB.LESS_EQUAL, self.data.upper_power_rhs[v]
+            self.variables[v][t], GRB.LESS_EQUAL, self.data.upper_power_rhs[v]
              ) 
             for v in range(1, len(self.data.variables)-1) for t in self.hours
         ]
         # Hourly balance constraints
         self.hourly_balance = [ self.model.addLConstr(
-            self.variables[0, t] + self.variables[1, t] - self.variables[2, t], self.hourly_balance_sense[j], self.hourly_balance_rhs[j]
+            self.variables[0][t] + self.variables[1][t] - self.variables[2][t], self.data.hourly_balance_sense[j], self.data.hourly_balance_rhs[j]
             ) for t in self.hours for j in range(len(self.data.hourly_balance_rhs))
 
         ]
 
         # Daily balance constraint
         self.daily_balance = self.model.addLConstr(
-            gp.quicksum(self.variables[0, t] + self.variables[1, t] - self.variables[2, t] for t in self.hours), GRB.GREATER_EQUAL, 0
+            gp.quicksum(self.variables[0][t] + self.variables[1][t] - self.variables[2][t]  for t in self.hours), GRB.GREATER_EQUAL, 9
         )
+
 
 
     def _build_objective(self):
         self.model.setObjective(
-            gp.quicksum(self.variables[0, t] * (self.data.el_prices[t] + self.data.imp_tariff) for t in self.hours),
-        GRB.minimize)
+            gp.quicksum(self.variables[1][t] * (self.data.el_prices[t] + self.data.imp_tariff) for t in self.hours),
+        GRB.MINIMIZE)
 
 
     def _build_model(self):
@@ -94,7 +97,8 @@ class OptModel():
     
     def _save_results(self):
         self.results.obj_val = self.model.ObjVal
-        self.results.var_vals = {(v, t): self.variables[v, t].x for v in self.data.variables for t in self.hours}
+        self.results.var_vals = {(self.data.variables[v], t): self.variables[v][t].x
+                         for v in range(len(self.data.variables)) for t in self.hours}
         # please return the dual values for all constraints
         self.results.dual_vals = {
             'upper_power': [self.upper_power[i].Pi for i in range(len(self.upper_power))],
@@ -118,4 +122,3 @@ class OptModel():
         print(self.results.var_vals)
         print("Optimal dual values:")
         print(self.results.dual_vals)
-        

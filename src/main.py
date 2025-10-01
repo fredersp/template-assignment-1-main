@@ -11,6 +11,7 @@ Suggested structure:
 import numpy as np
 import gurobipy as gp
 from gurobipy import GRB
+import pandas as pd
 
 from data_ops.data_loader import DataLoader
 from opt_model.opt_model import OptModel, InputData
