@@ -300,7 +300,7 @@ class OptModel1c():
         self.upper_power = [ self.model.addLConstr(
             self.variables[v][t], GRB.LESS_EQUAL, self.data.upper_power_rhs[v]
              ) 
-            for v in range(1, len(self.data.variables)-1) for t in self.hours
+            for v in range(1, len(self.data.variables)-4) for t in self.hours
         ]
         # Hourly balance constraints
         self.hourly_balance = [ self.model.addLConstr(
@@ -310,11 +310,17 @@ class OptModel1c():
 
         # Maximum state of charge constraint
         self.SOC_max = [ self.model.addLConstr(
-            self.variables[5][t], GRB.LESS_EQUAL, self.data.batery_capacity[t]
+            self.variables[5][t], GRB.LESS_EQUAL, self.data.battery_capacity
             )   
             for t in self.hours
         ]
 
+        # Minimum state of charge constraint
+        self.SOC_min = [ self.model.addLConstr(
+            self.variables[5][t], GRB.GREATER_EQUAL, self.data.battery_min_soc 
+            )
+            for t in self.hours
+        ]
 
         # Intial state of charge
         self.SOC_init = self.model.addLConstr(
@@ -339,11 +345,12 @@ class OptModel1c():
             ) for t in self.hours
         ]
 
-#S
+        #SOC for every hour except 00 and 23
         self.SOC = [self.model.addLConstr(
             self.variables[5][t], GRB.EQUAL, self.variables[5][t-1] + self.variables[3][t] * self.data.battery_charge_efficiency - self.variables[4][t] / self.data.battery_discharge_efficiency
-        ) for t in self.hours[1:23]
+        ) for t in self.hours[1:24]
         ]
+
         ### All variables are automtically set to be greater than or equal to zero
 
 
@@ -370,6 +377,7 @@ class OptModel1c():
         self.results.dual_vals = {
             'upper_power': [self.upper_power[i].Pi for i in range(len(self.upper_power))],
             'hourly_balance': [self.hourly_balance[i].Pi for i in range(len(self.hourly_balance))],
+            'SOC_status': [self.SOC[i].Pi for i in range(len(self.SOC))]
         }
 
     def run(self):

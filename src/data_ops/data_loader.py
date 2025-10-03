@@ -30,7 +30,7 @@ class DataLoader:
         - attr_name: Attribute name to save the loaded dataframe under (e.g., 'load', 'pv')
         
         Returns:
-        - pandas DataFrame
+        - Json data
         """
         file_path = self.input_path / question_name / file_name
         if not file_path.exists():
