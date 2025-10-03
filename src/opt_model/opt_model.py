@@ -65,7 +65,7 @@ class OptModel1a():
 
         # Upper power constraints P_imp and P_exp
         self.upper_power = [ self.model.addLConstr(
-            self.variables[v][t], GRB.LESS_EQUAL, self.data.upper_power_rhs[v]
+            self.variables[v][t], GRB.LESS_EQUAL, self.data.upper_power_rhs[v-1]
              ) 
             for v in range(1, len(self.data.variables)-1) for t in self.hours
         ]
@@ -176,7 +176,7 @@ class OptModel1b():
 
         # Upper power constraints P_imp and P_exp
         self.upper_power = [ self.model.addLConstr(
-            self.variables[v][t], GRB.LESS_EQUAL, self.data.upper_power_rhs[v]
+            self.variables[v][t], GRB.LESS_EQUAL, self.data.upper_power_rhs[v-1]
              ) 
             for v in range(1, len(self.data.variables)-1) for t in self.hours
         ]
@@ -298,9 +298,9 @@ class OptModel1c():
 
         # Upper power constraints P_imp and P_exp
         self.upper_power = [ self.model.addLConstr(
-            self.variables[v][t], GRB.LESS_EQUAL, self.data.upper_power_rhs[v]
+            self.variables[v][t], GRB.LESS_EQUAL, self.data.upper_power_rhs[v-1]
              ) 
-            for v in range(1, len(self.data.variables)-4) for t in self.hours
+            for v in range(1, len(self.data.variables)-3) for t in self.hours
         ]
         # Hourly balance constraints
         self.hourly_balance = [ self.model.addLConstr(
@@ -327,10 +327,18 @@ class OptModel1c():
             self.variables[5][0], GRB.EQUAL, self.data.battery_initial_soc
         )
 
+        ### Dual variable testing
+        
+        # Final state of charge
+        #self.SOC_end = self.model.addLConstr(
+        #    3, GRB.EQUAL, self.variables[5][23] + self.variables[3][23] * self.data.battery_charge_efficiency - self.variables[4][23] / self.data.battery_discharge_efficiency
+        #)
+
         # Final state of charge
         self.SOC_end = self.model.addLConstr(
-            self.variables[5][23], GRB.EQUAL, self.data.battery_initial_soc
+            self.variables[5][0], GRB.EQUAL, self.variables[5][23] + self.variables[3][23] * self.data.battery_charge_efficiency - self.variables[4][23] / self.data.battery_discharge_efficiency
         )
+
 
         # Battery charge max
         self.charge_max = [ self.model.addLConstr(
@@ -347,7 +355,7 @@ class OptModel1c():
 
         #SOC for every hour except 00 and 23
         self.SOC = [self.model.addLConstr(
-            self.variables[5][t], GRB.EQUAL, self.variables[5][t-1] + self.variables[3][t] * self.data.battery_charge_efficiency - self.variables[4][t] / self.data.battery_discharge_efficiency
+            self.variables[5][t], GRB.EQUAL, self.variables[5][t-1] + self.variables[3][t-1] * self.data.battery_charge_efficiency - self.variables[4][t-1] / self.data.battery_discharge_efficiency
         ) for t in self.hours[1:24]
         ]
 
@@ -377,7 +385,8 @@ class OptModel1c():
         self.results.dual_vals = {
             'upper_power': [self.upper_power[i].Pi for i in range(len(self.upper_power))],
             'hourly_balance': [self.hourly_balance[i].Pi for i in range(len(self.hourly_balance))],
-            'SOC_status': [self.SOC[i].Pi for i in range(len(self.SOC))]
+            'SOC_status': [self.SOC[i].Pi for i in range(len(self.SOC))],
+            'SOC_max': [self.SOC_max[i].Pi for i in range(len(self.SOC_max))]
         }
 
     def run(self):
@@ -396,3 +405,11 @@ class OptModel1c():
         print(self.results.var_vals)
         print("Optimal dual values:")
         print(self.results.dual_vals)
+
+
+
+
+
+
+
+

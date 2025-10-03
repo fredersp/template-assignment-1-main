@@ -59,3 +59,84 @@ model1c = OptModel1c(input_data1c, 'Question 1c Model')
 model1c.run()
 model1c.display_results()
 
+# EXPERIMENT SETUP FOR LOAD
+experiment_load = {
+    'base': hourly_balance_rhs1c, 
+    'high': [1.2 * val for val in hourly_balance_rhs1c], 
+    'low': [0.8 * val for val in hourly_balance_rhs1c],
+    'fixed': [np.mean(hourly_balance_rhs1c)] * len(hourly_balance_rhs1c)
+}
+
+# SCENARIO ANALYSIS FOR LOAD
+experiment_results_load = {}
+
+for exp_name, exp_rhs in experiment_load.items():
+    print(f"Running experiment: {exp_name}")
+    input_data1c = InputData1c(
+        variables1c, 
+        el_prices1c, 
+        imp_tariff1c, 
+        upper_power_PV_rhs1c, 
+        upper_power_rhs1c, 
+        exp_rhs, 
+        hourly_balance_sense1c,
+        battery_capacity,
+        eta_ch,
+        eta_dis,
+        battery_intial_soc,
+        battery_min_soc,
+        max_charge,
+        max_discharge
+    )
+    model1c = OptModel1c(input_data1c, f'Question 1c Model {exp_name}')
+    model1c.run()
+    model1c.display_results()
+    # Store results
+    experiment_results_load[exp_name] = {
+        "objective": model1c.results.obj_val,
+        "var_vals": model1c.results.var_vals,
+        "dual_vals": model1c.results.dual_vals,
+        "load_profile": exp_rhs
+    }
+
+# EXPERIMENT SETUP FOR COST STRUCTURE
+experiment_cost = {
+    'base': el_prices1c,
+    'fixed': [np.mean(el_prices1c)] * len(el_prices1c),
+    'no_day_tariff': [price - imp_tariff1c if 7 <= i <= 22 else price
+                  for i, price in enumerate(el_prices1c)],
+    'no_night_tariff': [price - imp_tariff1c if i < 7 or i > 22 else price
+                  for i, price in enumerate(el_prices1c)],
+}
+
+# SCENARIO ANALYSIS FOR COST STRUCTURE
+experiment_results_cost = {}
+
+for exp_name, exp_prices in experiment_cost.items():
+    print(f"Running experiment: {exp_name}")
+    input_data1c = InputData1c(
+        variables1c, 
+        exp_prices, 
+        imp_tariff1c, 
+        upper_power_PV_rhs1c, 
+        upper_power_rhs1c, 
+        hourly_balance_rhs1c, 
+        hourly_balance_sense1c,
+        battery_capacity,
+        eta_ch,
+        eta_dis,
+        battery_intial_soc,
+        battery_min_soc,
+        max_charge,
+        max_discharge
+    )
+    model1c = OptModel1c(input_data1c, f'Question 1c Model {exp_name}')
+    model1c.run()
+    model1c.display_results()
+    # Store results
+    experiment_results_cost[exp_name] = {
+        "objective": model1c.results.obj_val,
+        "var_vals": model1c.results.var_vals,
+        "dual_vals": model1c.results.dual_vals,
+        "load_profile": exp_prices
+    }
