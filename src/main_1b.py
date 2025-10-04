@@ -6,11 +6,11 @@ import numpy as np
 import gurobipy as gp
 from gurobipy import GRB
 import pandas as pd
-#import matplotlib.pyplot as plt
-#import seaborn as sns
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 from data_ops.data_loader import DataLoader
-from opt_model.opt_model import OptModel1a, InputData1a, OptModel1b, InputData1b
+from opt_model.opt_model import OptModel1b, InputData1b
 
 
 data = DataLoader('data')
@@ -77,11 +77,45 @@ for exp_name, exp_rhs in experiment.items():
         "load_profile": exp_rhs
     }
 
-# Now you can access results like:
-# experiment_results['base']['objective']
-# experiment_results['high']['var_vals']
+
 
 # plots visualizing the results
+
+for exp_name, results in experiment_results.items():
+    hours = range(len(results['load_profile']))
+    
+    load = results['load_profile']
+    P_imp = [results['var_vals'][('P_imp', t)] for t in hours]
+    P_exp = -np.array([results['var_vals'][('P_exp', t)] for t in hours])
+    P_pv  = [results['var_vals'][('P_PV', t)] for t in hours]
+    prices = el_prices1b
+
+    plt.figure(figsize=(15, 10))
+    plt.suptitle(f'Experiment: {exp_name}', fontsize=16)
+
+    # 1. Electricity Price + PV Production (shared plot)
+    plt.subplot(3, 1, 1)
+    plt.step(hours, load, label='Hourly Load Profile (kWh)', linewidth=2)
+    plt.bar(hours, P_pv, color = 'darkorange', width=0.3, label='PV Production (kW)', alpha=0.9)
+    plt.xlabel('Hour')
+    plt.ylabel('Energy (kWh)')
+    plt.title('Hourly Load Profile and PV Production')
+    plt.grid()
+    plt.legend()
+
+    # 2. Power Import & Export
+    plt.subplot(3, 1, 2)
+    plt.plot(hours, prices, color = 'green', label = 'Electricity Prices (DKK/kWh)')
+    plt.bar(hours, P_imp, width=0.3, label='Power Import (kW)', alpha=0.9)
+    plt.bar(hours, P_exp, width=0.3, label='Power Export (kW)', alpha=0.9)
+    plt.xlabel('Hour')
+    plt.ylabel('Power (kW) / Price')
+    plt.title('Power Import and Export Over 24 Hours')
+    plt.grid()
+    plt.legend()
+
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+    plt.show()
 
 
 
