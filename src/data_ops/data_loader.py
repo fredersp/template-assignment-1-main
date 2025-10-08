@@ -16,7 +16,7 @@ class DataLoader:
     def __init__(self, input_path: str):
         # Convert to Path object and resolve absolute path 
         # Weird code, solve late if possible
-        self.input_path = Path(input_path).resolve().parent.parent / input_path
+        self.input_path = Path(input_path).resolve() / input_path #.parent.parent
         
 
 

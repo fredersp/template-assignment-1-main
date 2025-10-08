@@ -11,13 +11,13 @@ from data_ops.data_loader import DataLoader
 from opt_model.opt_model import OptModel1c, InputData1c
 
 
-data = DataLoader('data')
+data = DataLoader('.')
 
-app_data1c = data._load_data_file('question_1c', 'appliance_params.json')
-bus_data1c = data._load_data_file('question_1c', 'bus_params.json')
-con_data1c = data._load_data_file('question_1c', 'consumer_params.json')
-DER_data1c = data._load_data_file('question_1c', 'DER_production.json')
-usa_data1c = data._load_data_file('question_1c', 'usage_preferences.json') 
+app_data1c = data._load_data_file('data/question_1c', 'appliance_params.json')
+bus_data1c = data._load_data_file('data/question_1c', 'bus_params.json')
+con_data1c = data._load_data_file('data/question_1c', 'consumer_params.json')
+DER_data1c = data._load_data_file('data/question_1c', 'DER_production.json')
+usa_data1c = data._load_data_file('data/question_1c', 'usage_preferences.json') 
 
 variables1c = ['P_PV', 'P_imp', 'P_exp', 'P_bat_ch', 'P_bat_dis', 'SOC']
 el_prices1c = bus_data1c[0]['energy_price_DKK_per_kWh']

@@ -10,17 +10,17 @@ from data_ops.data_loader import DataLoader
 from opt_model.opt_model import OptModel1a, InputData1a, OptModel1b, InputData1b
 
 
-data = DataLoader('data')
+data = DataLoader('.')
 
 #########################
 # Question 1a
 #########################
 
-app_data1a = data._load_data_file('question_1a', 'appliance_params.json')
-bus_data1a = data._load_data_file('question_1a', 'bus_params.json')
-con_data1a = data._load_data_file('question_1a', 'consumer_params.json')
-DER_data1a = data._load_data_file('question_1a', 'DER_production.json')
-usa_data1a = data._load_data_file('question_1a', 'usage_preference.json')
+app_data1a = data._load_data_file('data/question_1a', 'appliance_params.json')
+bus_data1a = data._load_data_file('data/question_1a', 'bus_params.json')
+con_data1a = data._load_data_file('data/question_1a', 'consumer_params.json')
+DER_data1a = data._load_data_file('data/question_1a', 'DER_production.json')
+usa_data1a = data._load_data_file('data/question_1a', 'usage_preference.json')
 
 variables1a = ['P_PV', 'P_imp', 'P_exp']
 el_prices1a = bus_data1a[0]['energy_price_DKK_per_kWh']
@@ -40,7 +40,6 @@ input_data1a = InputData1a(variables1a,
                        hourly_balance_rhs1a, 
                        hourly_balance_sense1a,
                        daily_balance_rhs1a)
-
 
 
 model1a = OptModel1a(input_data1a, 'Question 1a Model')
@@ -106,7 +105,7 @@ for exp_name, results in experiment_results.items():
 
     # 2. Electricity Prices, Power Import & Export
     plt.subplot(3, 1, 2)
-    plt.plot(hours, prices, color = 'green', label='Electricity Price (DKK/kWh)', linewidth=2)
+    plt.step(hours, prices, color='green', label='Electricity Price (DKK/kWh)', linewidth=2, where='post')
     plt.bar(hours, P_imp, width=0.3, label='Power Import (kW)', alpha=0.9)
     plt.bar(hours, P_exp, width=0.3, label='Power Export (kW)', alpha=0.9)
     plt.xlabel('Hour')
