@@ -1,5 +1,4 @@
-# template of an environment file for conda
-# update as needed
+# environment file for conda
 
 name: gurobi-opt
 channels:
