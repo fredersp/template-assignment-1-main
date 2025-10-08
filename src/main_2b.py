@@ -2,6 +2,7 @@
 # Question 2b
 ##########################
 
+
 import numpy as np
 import gurobipy as gp
 from gurobipy import GRB
@@ -67,8 +68,8 @@ model2b.display_results()
 # EXPERIMENT SETUP FOR CAPEX
 experiment_capex = {
     'base': capex, 
-    'high': capex * 10, 
-    'low': capex * 0.5
+    'high capex': capex * 10, 
+    'low capex': capex * 0.5
 }
 
 
@@ -292,5 +293,121 @@ plt.figure(figsize=(8, 5))
 plt.bar(exp_names, costs, color = 'steelblue')
 plt.ylabel('Profit (DKK)')
 plt.title('Profit over 10 years (DKK)')
+plt.grid(axis='y', alpha=0.3)
+plt.show()
+
+
+
+
+EXPERIMENT SETUP FOR LOAD
+experiment_load = {
+    'base': hourly_balance_rhs2b, 
+    'high': [1.2 * val for val in hourly_balance_rhs2b], 
+    'low': [0.8 * val for val in hourly_balance_rhs2b],
+    'fixed': [np.mean(hourly_balance_rhs2b)] * len(hourly_balance_rhs2b)
+}
+
+# SCENARIO ANALYSIS FOR LOAD
+experiment_results_load = {}
+
+for exp_name, exp_rhs in experiment_load.items():
+    print(f"Running experiment: {exp_name}")
+    input_data1c = InputData2b(
+        variables2b, 
+        el_prices2b, 
+        imp_tariff2b,
+        exp_tariff2b, 
+        upper_power_PV_rhs2b, 
+        upper_power_rhs2b, 
+        exp_rhs, 
+        hourly_balance_sense2b,
+        eta_ch,
+        eta_dis,
+        battery_intial_soc,
+        battery_min_soc,
+        max_charge,
+        max_discharge,
+        lifetime,
+        capex
+    )
+    model2b = OptModel2b(input_data1c, f'Question 2b Model {exp_name}')
+    model2b.run()
+    model2b.display_results()
+    # Store results
+    experiment_results_load[exp_name] = {
+        "objective": model2b.results.obj_val,
+        "var_vals": model2b.results.var_vals,
+        "dual_vals": model2b.results.dual_vals,
+        "load_profile": exp_rhs
+    }
+
+# Plotting the result for the 
+
+for exp_name, results in experiment_results_load.items():
+    hours = range(len(results['load_profile']))
+    
+    load = results['load_profile']
+    P_imp = [results['var_vals'][('P_imp', t)] for t in hours]
+    P_exp = -np.array([results['var_vals'][('P_exp', t)] for t in hours])
+    P_pv  = [results['var_vals'][('P_PV', t)] for t in hours]
+    P_charge = [results['var_vals'][('P_bat_ch', t)] for t in hours]
+    P_discharge = -np.array([results['var_vals'][('P_bat_dis', t)] for t in hours])
+    SOC = [results['var_vals'][('SOC', t)] for t in hours]
+    prices = el_prices2b
+    #cost = results['objective']
+
+    plt.figure(figsize=(15, 10))
+    plt.suptitle(f'Experiment: {exp_name}', fontsize=16)
+
+    # 1. Electricity Price + PV Production (shared plot)
+    plt.subplot(3, 1, 1)
+    plt.step(hours, load, label='Hourly Load Profile (kWh)', linewidth=2)
+    plt.bar(hours, P_pv, color = 'darkorange', width=0.3, label='PV Production (kW)', alpha=0.9)
+    plt.xlabel('Hour')
+    plt.ylabel('Energy (kWh)')
+    plt.title('Hourly Load Profile and PV Production')
+    plt.grid()
+    plt.legend()
+
+    # 2. Prices and Power Import & Export
+    ax1 = plt.subplot(3, 1, 2)  # Primary axis
+    ax1.bar(hours, P_imp, width=0.3, label='Power Import (kW)', alpha=0.9)
+    ax1.bar(hours, P_exp, width=0.3, label='Power Export (kW)', alpha=0.9)
+    ax1.set_xlabel('Hour')
+    ax1.set_ylabel('Power (kW)')
+    ax1.set_title('Power Import, Export & Prices Over 24 Hours')
+    ax1.grid()
+
+    # Create secondary y-axis for prices
+    ax2 = ax1.twinx()
+    ax2.step(hours, prices, label='Electricity Prices (DKK/kWh)', color='green', linewidth=2)
+    ax2.set_ylabel('Electricity Price (DKK/kWh)')
+
+    # Combine legends from both axes
+    handles1, labels1 = ax1.get_legend_handles_labels()
+    handles2, labels2 = ax2.get_legend_handles_labels()
+    ax1.legend(handles1 + handles2, labels1 + labels2, loc='upper right')
+
+    # 3. Battery SOC, charging and discharging
+    plt.subplot(3, 1, 3)
+    plt.step(hours, SOC, color = 'blue', label = 'Battery State of Charge (kWh)')
+    plt.bar(hours, P_charge, color = 'green', width=0.3, label='Battery Charging (kW)', alpha=0.9)
+    plt.bar(hours, P_discharge, color = 'red', width=0.3, label='Battery Discharging (kW)', alpha=0.9)
+    plt.xlabel('Hour')
+    plt.ylabel('Energy (kWh) / Power (kW)')
+    plt.title('SOC, Charging and Discharging Over 24 Hours')
+    plt.grid()
+    plt.legend()
+
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+    plt.show()
+
+exp_names = list(experiment_results_load.keys())
+costs = [experiment_results_load[exp]['objective'] for exp in exp_names]
+
+plt.figure(figsize=(8, 5))
+plt.bar(exp_names, costs, color='steelblue')
+plt.ylabel('Profit Cost (DKK)')
+plt.title('Profit by Different Load Profiles')
 plt.grid(axis='y', alpha=0.3)
 plt.show()
