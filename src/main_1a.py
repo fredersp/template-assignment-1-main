@@ -1,3 +1,6 @@
+#########################
+# Question 1a
+#########################
 
 import numpy as np
 import gurobipy as gp
@@ -7,14 +10,10 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 from data_ops.data_loader import DataLoader
-from opt_model.opt_model import OptModel1a, InputData1a, OptModel1b, InputData1b
+from opt_model.opt_model import OptModel1a, InputData1a
 
 
 data = DataLoader('.')
-
-#########################
-# Question 1a
-#########################
 
 app_data1a = data._load_data_file('data/question_1a', 'appliance_params.json')
 bus_data1a = data._load_data_file('data/question_1a', 'bus_params.json')

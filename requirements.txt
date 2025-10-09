@@ -1,5 +1,4 @@
-#Template of a requirements file for pip
-# update as needed
+# Requirements file for pip
 
 # Core optimizer
 gurobipy>=11.0.0
