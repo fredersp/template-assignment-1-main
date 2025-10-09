@@ -96,21 +96,25 @@ for exp_name, results in experiment_results.items():
 
     # 1. PV Production (shared plot)
     plt.subplot(3, 1, 1)
-    plt.bar(hours, P_pv, color = 'Orange', width=0.3, label='PV Production (kW)', alpha=0.9)
+    plt.bar(hours, P_pv, color='orange', width=0.95, label='PV Production [kW]', alpha=0.9, align='edge')  
     plt.xlabel('Hour')
-    plt.ylabel('Power (kW)')
+    plt.ylabel('Power [kW]')
     plt.title('PV Production')
+    plt.xlim(0, 24)
     plt.grid()
     plt.legend()
 
     # 2. Electricity Prices, Power Import & Export
     plt.subplot(3, 1, 2)
-    plt.step(hours, prices, color='green', label='Electricity Price (DKK/kWh)', linewidth=2, where='post')
-    plt.bar(hours, P_imp, width=0.3, label='Power Import (kW)', alpha=0.9)
-    plt.bar(hours, P_exp, width=0.3, label='Power Export (kW)', alpha=0.9)
+    hours_step = list(hours) + [hours[-1] + 1]
+    prices_step = list(prices) + [prices[-1]]
+    plt.step(hours_step, prices_step, color='green', label='Electricity Price (DKK/kWh)', linewidth=2, where='post')
+    plt.bar(hours, P_imp, width=0.9, label='Power Import (kW)', alpha=0.9, align='edge', color='skyblue')
+    plt.bar(hours, P_exp, width=0.9, label='Power Export (kW)', alpha=0.9, align='edge', bottom=P_imp, color='grey')
     plt.xlabel('Hour')
-    plt.ylabel('Power (kW) / Prices (DKK/kWh)')
+    plt.ylabel('Power [kW] / Prices [DKK/kWh]')
     plt.title('Electricity Prices, Power Import and Export Over 24 Hours')
+    plt.xlim(0, 24)
     plt.grid()
     plt.legend()
 

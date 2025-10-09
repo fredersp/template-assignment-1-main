@@ -117,33 +117,40 @@ for exp_name, results in experiment_results_load.items():
 
     # 1. Electricity Price + PV Production (shared plot)
     plt.subplot(3, 1, 1)
-    plt.step(hours, load, label='Hourly Load Profile (kWh)', linewidth=2)
-    plt.bar(hours, P_pv, color = 'darkorange', width=0.3, label='PV Production (kW)', alpha=0.9)
+    hours_step = list(hours) + [hours[-1] + 1] 
+    load_step = list(load) + [load[-1]]
+    plt.step(hours_step, load_step, label='Hourly Load Profile [kW]', linewidth=2 , where='post', color='blue')
+    plt.bar(hours, P_pv, color = 'orange', width=0.95, label='PV Production [kW]', alpha=0.9, align='edge')
     plt.xlabel('Hour')
-    plt.ylabel('Energy (kWh)')
+    plt.ylabel('Power [kW]')
     plt.title('Hourly Load Profile and PV Production')
+    plt.xlim(0,24)
     plt.grid()
     plt.legend()
 
     # 2. Power Import & Export
     plt.subplot(3, 1, 2)
-    plt.plot(hours, prices, color = 'green', label = 'Electricity Prices (DKK/kWh)')
-    plt.bar(hours, P_imp, width=0.3, label='Power Import (kW)', alpha=0.9)
-    plt.bar(hours, P_exp, width=0.3, label='Power Export (kW)', alpha=0.9)
+    prices_step = list(prices) + [prices[-1]]
+    plt.step(hours_step, prices_step, color = 'green', label = 'Electricity Prices [DKK/kWh]', where='post')
+    plt.bar(hours, P_imp, width=0.95, label='Power Import [kW]', alpha=0.9, align='edge', color='skyblue')
+    plt.bar(hours, P_exp, width=0.95, label='Power Export [kW]', alpha=0.9, align='edge', color='grey')
     plt.xlabel('Hour')
-    plt.ylabel('Power (kW) / Price')
+    plt.ylabel('Power [kW] / Price [DKK/kWh]')
     plt.title('Power Import and Export Over 24 Hours')
+    plt.xlim(0,24)
     plt.grid()
     plt.legend()
 
     # 3. Battery SOC, charging and discharging
     plt.subplot(3, 1, 3)
-    plt.step(hours, SOC, color = 'blue', label = 'Battery State of Charge (kWh)')
-    plt.bar(hours, P_charge, color = 'green', width=0.3, label='Battery Charging (kW)', alpha=0.9)
-    plt.bar(hours, P_discharge, color = 'red', width=0.3, label='Battery Discharging (kW)', alpha=0.9)
+    SOC_step = list(SOC) + [SOC[-1]]
+    plt.step(hours_step, SOC_step, color = 'black', label = 'Battery State of Charge [kWh]', where='post')
+    plt.bar(hours, P_charge, color = 'darkgreen', width=0.95, label='Battery Charging [kW]', alpha=0.9, align='edge')
+    plt.bar(hours, P_discharge, color = 'darkred', width=0.95, label='Battery Discharging [kW]', alpha=0.9, align='edge')
     plt.xlabel('Hour')
-    plt.ylabel('Energy (kWh) / Power (kW)')
+    plt.ylabel('Energy [kWh] / Power [kW]')
     plt.title('SOC, Charging and Discharging Over 24 Hours')
+    plt.xlim(0,24)
     plt.grid()
     plt.legend()
 
@@ -153,13 +160,14 @@ for exp_name, results in experiment_results_load.items():
 exp_names = list(experiment_results_load.keys())
 costs = [experiment_results_load[exp]['objective'] for exp in exp_names]
 
+"""
 plt.figure(figsize=(8, 5))
 plt.bar(exp_names, costs, color='steelblue')
 plt.ylabel('Procurement Cost (DKK)')
 plt.title('Procurement Cost by Different Load Profiles')
 plt.grid(axis='y', alpha=0.3)
 plt.show()
-
+"""
 
 
 
@@ -224,33 +232,40 @@ for exp_name, results in experiment_results_cost.items():
 
     # 1. Electricity Price + PV Production (shared plot)
     plt.subplot(3, 1, 1)
-    plt.step(hours, load, label='Hourly Load Profile (kWh)', linewidth=2)
-    plt.bar(hours, P_pv, color = 'darkorange', width=0.3, label='PV Production (kW)', alpha=0.9)
+    hours_step = list(hours) + [hours[-1] + 1]
+    load_step = list(load) + [load[-1]]
+    plt.step(hours_step, load_step, label='Hourly Load Profile [kW]', linewidth=2, where='post', color='blue')
+    plt.bar(hours, P_pv, color = 'orange', width=0.95, label='PV Production [kW]', alpha=0.9, align='edge')
     plt.xlabel('Hour')
-    plt.ylabel('Energy (kWh)')
+    plt.ylabel('Power [kW]')
     plt.title('Hourly Load Profile and PV Production')
+    plt.xlim(0,24)
     plt.grid()
     plt.legend()
 
     # 2. Power Import & Export
     plt.subplot(3, 1, 2)
-    plt.plot(hours, prices, color = 'green', label = 'Electricity Prices (DKK/kWh)')
-    plt.bar(hours, P_imp, width=0.3, label='Power Import (kW)', alpha=0.9)
-    plt.bar(hours, P_exp, width=0.3, label='Power Export (kW)', alpha=0.9)
+    prices_step = list(prices) + [prices[-1]]
+    plt.step(hours_step, prices_step, color = 'green', label = 'Electricity Prices [DKK/kWh]', linewidth=2, where='post')
+    plt.bar(hours, P_imp, width=0.95, label='Power Import [kW]', alpha=0.9, color='skyblue', align='edge')
+    plt.bar(hours, P_exp, width=0.95, label='Power Export (kW)', alpha=0.9, color='grey', align='edge')
     plt.xlabel('Hour')
-    plt.ylabel('Power (kW) / Price')
+    plt.ylabel('Power [kW] / Price [DKK/kWh]')
     plt.title('Power Import and Export Over 24 Hours')
+    plt.xlim(0, 24)
     plt.grid()
     plt.legend()
 
     # 3. Battery SOC, charging and discharging
     plt.subplot(3, 1, 3)
-    plt.step(hours, SOC, color = 'blue', label = 'Battery State of Charge (kWh)')
-    plt.bar(hours, P_charge, color = 'green', width=0.3, label='Battery Charging (kW)', alpha=0.9)
-    plt.bar(hours, P_discharge, color = 'red', width=0.3, label='Battery Discharging (kW)', alpha=0.9)
+    SOC_step = list(SOC) + [SOC[-1]]
+    plt.step(hours_step, SOC_step, color = 'black', label = 'Battery State of Charge [kWh]', where='post')
+    plt.bar(hours, P_charge, color = 'darkgreen', width=0.95, label='Battery Charging [kW]', alpha=0.9, align='edge')
+    plt.bar(hours, P_discharge, color = 'darkred', width=0.95, label='Battery Discharging [kW]', alpha=0.9, align='edge')
     plt.xlabel('Hour')
-    plt.ylabel('Energy (kWh) / Power (kW)')
+    plt.ylabel('Energy [kWh] / Power [kW]')
     plt.title('SOC, Charging and Discharging Over 24 Hours')
+    plt.xlim(0, 24)
     plt.grid()
     plt.legend()
 
