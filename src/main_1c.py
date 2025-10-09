@@ -11,7 +11,7 @@ from data_ops.data_loader import DataLoader
 from opt_model.opt_model import OptModel1c, InputData1c
 
 
-data = DataLoader('.')
+data = DataLoader('..')
 
 app_data1c = data._load_data_file('data/question_1c', 'appliance_params.json')
 bus_data1c = data._load_data_file('data/question_1c', 'bus_params.json')
